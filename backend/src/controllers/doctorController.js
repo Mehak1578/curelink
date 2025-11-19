@@ -17,7 +17,13 @@ exports.createProfile = async (req, res) => {
 exports.getAll = async (req, res) => {
   try{
     const docs = await Doctor.find().populate('user','name email');
-    res.json(docs);
+    const transformedDocs = docs.map(doc => ({
+      id: doc._id,
+      name: doc.user.name,
+      specialty: doc.specialization,
+      experience: doc.experience + " years"
+    }));
+    res.json(transformedDocs);
   }catch(err){ console.error(err); res.status(500).json({ msg: 'Server error' }); }
 }
 

@@ -164,9 +164,12 @@ export default function Appointments(){
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
-                          <button className="px-3 py-1 text-sm text-sky-600 hover:bg-sky-50 rounded transition-colors">
+                          <Link 
+                            to={`/doctors/${a.doctor?._id}`}
+                            className="px-3 py-1 text-sm text-sky-600 hover:bg-sky-50 rounded transition-colors"
+                          >
                             View
-                          </button>
+                          </Link>
                           {a.status === 'requested' && (
                             <button 
                               onClick={() => handleCancel(a._id)}
@@ -208,7 +211,12 @@ export default function Appointments(){
                     {a.reason && <div>📝 {a.reason}</div>}
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <button className="flex-1 px-3 py-2 text-sm bg-sky-50 text-sky-600 font-medium rounded">View</button>
+                    <Link 
+                      to={`/doctors/${a.doctor?._id}`}
+                      className="flex-1 px-3 py-2 text-sm bg-sky-50 text-sky-600 font-medium rounded text-center"
+                    >
+                      View
+                    </Link>
                     {a.status === 'requested' && (
                       <button 
                         onClick={() => handleCancel(a._id)}

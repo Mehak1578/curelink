@@ -1,29 +1,30 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const Doctor = require('./models/Doctor');
 require('dotenv').config();
 
 const doctors = [
-  { "name": "Dr. Priya Sharma", "specialty": "Cardiologist", "experience": "8 years" },
-  { "name": "Dr. Rajesh Kumar", "specialty": "Dermatologist", "experience": "5 years" },
-  { "name": "Dr. Ananya Verma", "specialty": "Pediatrician", "experience": "6 years" },
-  { "name": "Dr. Mohan Gupta", "specialty": "General Physician", "experience": "10 years" },
-  { "name": "Dr. Neha Kaur", "specialty": "Neurologist", "experience": "7 years" },
-  { "name": "Dr. Vivek Agarwal", "specialty": "Orthopedic Surgeon", "experience": "12 years" },
-  { "name": "Dr. Sana Fatima", "specialty": "Gynecologist", "experience": "9 years" },
-  { "name": "Dr. Rohan Deshmukh", "specialty": "ENT Specialist", "experience": "6 years" },
-  { "name": "Dr. Isha Mehta", "specialty": "Psychiatrist", "experience": "5 years" },
-  { "name": "Dr. Harsh Patel", "specialty": "Dentist", "experience": "4 years" },
-  { "name": "Dr. Kavita Saxena", "specialty": "Endocrinologist", "experience": "11 years" },
-  { "name": "Dr. Aditya Nair", "specialty": "Pulmonologist", "experience": "8 years" },
-  { "name": "Dr. Sneha Choudhary", "specialty": "Oncologist", "experience": "6 years" },
-  { "name": "Dr. Karan Bhatia", "specialty": "Nephrologist", "experience": "9 years" },
-  { "name": "Dr. Ritika Singh", "specialty": "Radiologist", "experience": "7 years" },
-  { "name": "Dr. Arjun Malhotra", "specialty": "Urologist", "experience": "13 years" },
-  { "name": "Dr. Pooja Jain", "specialty": "Gastroenterologist", "experience": "8 years" },
-  { "name": "Dr. Sameer Qureshi", "specialty": "Dermatologist", "experience": "6 years" },
-  { "name": "Dr. Meena Joshi", "specialty": "General Physician", "experience": "15 years" },
-  { "name": "Dr. Ashwin Rao", "specialty": "Cardiologist", "experience": "10 years" }
+  { name: "Dr. Priya Sharma", specialization: "Cardiologist", experience: 8 },
+  { name: "Dr. Rajesh Kumar", specialization: "Dermatologist", experience: 5 },
+  { name: "Dr. Ananya Verma", specialization: "Pediatrician", experience: 6 },
+  { name: "Dr. Mohan Gupta", specialization: "General Physician", experience: 10 },
+  { name: "Dr. Neha Kaur", specialization: "Neurologist", experience: 7 },
+  { name: "Dr. Vivek Agarwal", specialization: "Orthopedic Surgeon", experience: 12 },
+  { name: "Dr. Sana Fatima", specialization: "Gynecologist", experience: 9 },
+  { name: "Dr. Rohan Deshmukh", specialization: "ENT Specialist", experience: 6 },
+  { name: "Dr. Isha Mehta", specialization: "Psychiatrist", experience: 5 },
+  { name: "Dr. Harsh Patel", specialization: "Dentist", experience: 4 },
+  { name: "Dr. Kavita Saxena", specialization: "Endocrinologist", experience: 11 },
+  { name: "Dr. Aditya Nair", specialization: "Pulmonologist", experience: 8 },
+  { name: "Dr. Sneha Choudhary", specialization: "Oncologist", experience: 6 },
+  { name: "Dr. Karan Bhatia", specialization: "Nephrologist", experience: 9 },
+  { name: "Dr. Ritika Singh", specialization: "Radiologist", experience: 7 },
+  { name: "Dr. Arjun Malhotra", specialization: "Urologist", experience: 13 },
+  { name: "Dr. Pooja Jain", specialization: "Gastroenterologist", experience: 8 },
+  { name: "Dr. Sameer Qureshi", specialization: "Dermatologist", experience: 6 },
+  { name: "Dr. Meena Joshi", specialization: "General Physician", experience: 15 },
+  { name: "Dr. Ashwin Rao", specialization: "Cardiologist", experience: 10 }
 ];
 
 const seedDoctors = async () => {
@@ -31,54 +32,58 @@ const seedDoctors = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ MongoDB Connected');
 
-    // Check if doctors already exist
-    const existingCount = await User.countDocuments({ role: 'doctor' });
-    if (existingCount >= 20) {
-      console.log('⚠️ Doctors already seeded. Skipping...');
-      process.exit(0);
-    }
+    // Delete all existing doctor users and doctor profiles
+    await User.deleteMany({ role: 'doctor' });
+    await Doctor.deleteMany({});
+    console.log('🗑️  Cleared existing doctors');
+
+    // Hash default password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('password123', salt);
 
     const doctorUsers = [];
     const doctorProfiles = [];
 
     for (let i = 0; i < doctors.length; i++) {
       const doc = doctors[i];
-      const email = doc.name.toLowerCase().replace(/\s+/g, '.').replace('dr.', '') + '@curelink.com';
       
-      // Create User
+      // Generate email from name
+      const email = doc.name
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace('dr.', 'dr')
+        + '@gmail.com';
+      
+      // Create User document
       const user = new User({
         name: doc.name,
         email: email,
-        password: '$2a$10$YourHashedPasswordHere', // Dummy hashed password
+        password: hashedPassword,
         role: 'doctor',
         verified: true
       });
       
+      await user.save();
       doctorUsers.push(user);
       
       // Create Doctor profile
-      const experienceYears = parseInt(doc.experience.split(' ')[0]);
-      const doctorProfile = {
+      const doctorProfile = new Doctor({
         user: user._id,
-        specialization: doc.specialty,
-        experience: experienceYears,
-        fees: 500 + (experienceYears * 50), // Fee based on experience
+        specialization: doc.specialization,
+        experience: doc.experience,
+        fees: 500,
         verified: true,
-        bio: `Experienced ${doc.specialty} with ${doc.experience} of practice.`
-      };
+        bio: `Experienced ${doc.specialization} with ${doc.experience} years of practice.`
+      });
       
+      await doctorProfile.save();
       doctorProfiles.push(doctorProfile);
+      
+      console.log(`✅ Created: ${doc.name}`);
     }
 
-    // Insert all users
-    await User.insertMany(doctorUsers);
-    console.log('✅ 20 doctor users created');
-
-    // Insert all doctor profiles
-    await Doctor.insertMany(doctorProfiles);
-    console.log('✅ 20 doctor profiles created');
-
-    console.log('🎉 Successfully seeded 20 doctors!');
+    console.log(`\n🎉 Successfully seeded ${doctors.length} doctors!`);
+    console.log(`📧 Default password for all doctors: password123`);
     process.exit(0);
   } catch (error) {
     console.error('❌ Seeding failed:', error.message);

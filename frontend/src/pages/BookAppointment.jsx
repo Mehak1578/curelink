@@ -54,9 +54,13 @@ export default function BookAppointment() {
     setLoading(true)
 
     try {
+      // Format date to ISO string
+      const formattedDate = new Date(`${formData.date}T${formData.time}:00`).toISOString()
+      
       const appointmentData = {
-        doctor: formData.doctorId,
-        appointmentDate: `${formData.date}T${formData.time}:00`,
+        doctor: selectedDoctor?._id || selectedDoctor?.id || formData.doctorId,
+        date: formattedDate,
+        time: formData.time,
         reason: formData.reason || 'General consultation'
       }
 

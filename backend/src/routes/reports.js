@@ -47,11 +47,14 @@ router.post('/upload', auth, upload.single('report'), async (req, res) => {
       // Upload to Cloudinary using stream
       const streamifier = require('streamifier');
       
+      // Determine resource type based on file type
+      const resourceType = req.file.mimetype === 'application/pdf' ? 'raw' : 'image';
+      
       const uploadPromise = new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { 
             folder: 'curelink/reports',
-            resource_type: 'auto', // Handles PDFs and images
+            resource_type: resourceType, // 'raw' for PDFs, 'image' for images
           },
           (error, result) => {
             if (error) {

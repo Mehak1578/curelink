@@ -104,6 +104,11 @@ export default function AnalyzeReport(){
     )
   }
 
+  // Fix PDF URL - Cloudinary stores PDFs under /raw/upload/ not /image/upload/
+  const fixedUrl = report?.fileType === 'application/pdf' && report?.url
+    ? report.url.replace('/image/upload/', '/raw/upload/')
+    : report?.url;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-50 py-12 px-4">
       <div className="container-max max-w-4xl">
@@ -148,7 +153,11 @@ export default function AnalyzeReport(){
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6 border border-slate-100">
           <div className="flex items-start gap-6 mb-6">
             {/* File Icon */}
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center flex-shrink-0">
+            <div className={`w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              report?.fileType === 'application/pdf' 
+                ? 'bg-gradient-to-br from-red-400 to-red-500' 
+                : 'bg-gradient-to-br from-purple-400 to-pink-500'
+            }`}>
               <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -185,7 +194,7 @@ export default function AnalyzeReport(){
                       year: 'numeric'
                     })}
                   </span>
-                </div>
+                </div>11    
               </div>
             </div>
           </div>
@@ -194,7 +203,7 @@ export default function AnalyzeReport(){
           <div className="flex flex-wrap gap-4">
             {report?.url && (
               <a
-                href={report.url}
+                href={fixedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
@@ -202,7 +211,7 @@ export default function AnalyzeReport(){
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-                Open Report
+                {report?.fileType === 'application/pdf' ? 'Open PDF' : 'Open Report'}
               </a>
             )}
             

@@ -15,7 +15,9 @@ exports.create = async (req, res) => {
 
 exports.getMy = async (req, res) => {
   try {
-    const appts = await Appointment.find({ $or: [{ patient: req.user.id }, { doctor: req.user.id }] }).populate('patient doctor', 'name email');
+    const appts = await Appointment.find({ $or: [{ patient: req.user.id }, { doctor: req.user.id }] })
+      .populate('patient', 'name email')
+      .populate({ path: 'doctor', populate: { path: 'user', select: 'name email' } });
     res.json(appts);
   } catch (err) {
     console.error(err);
